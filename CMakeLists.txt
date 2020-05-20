@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-PROJECT(tcp_client_send)
+PROJECT(p2p_client)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 

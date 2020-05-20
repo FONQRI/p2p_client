@@ -1,11 +1,11 @@
-#include <iostream>
-#include <string>
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
 #include <boost/bind.hpp>
-#include <cstring>
+#include <boost/thread.hpp>
 #include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <string>
 boost::shared_mutex io_mutex;
 
 namespace
@@ -17,7 +17,8 @@ using boost::asio::ip::udp;
 class udp_client
 {
 public:
-    udp_client(boost::asio::io_service &io_service, const char *host, const char *port):_sock(io_service)
+    udp_client(boost::asio::io_service& io_service, const char* host, const char* port)
+        : _sock(io_service)
     {
         udp::resolver _resolver(io_service);
         udp::resolver::query _query(udp::v4(), host, port);
@@ -28,11 +29,12 @@ public:
 
     void start_send();
     void session_send();
-    void handle_send(const boost::system::error_code &ec, std::size_t len);
+    void handle_send(const boost::system::error_code& ec, std::size_t len);
     void session_receive();
-    void handle_recevie(const boost::system::error_code &ec, std::size_t len);
-    [[noreturn]]  void p2p_receive(udp::socket &sock, udp::endpoint &peer_endpoint);
-    void p2p_send(udp::socket *sock, udp::endpoint *peer_endpoint);
+    void handle_recevie(const boost::system::error_code& ec, std::size_t len);
+    [[noreturn]] void p2p_receive(udp::socket& sock, udp::endpoint& peer_endpoint);
+    void p2p_send(udp::socket* sock, udp::endpoint* peer_endpoint);
+
 private:
     udp::socket _sock;
     udp::endpoint _server_endpoint;
@@ -42,24 +44,25 @@ private:
 
 void udp_client::start_send()
 {
+    std::clog << __FUNCTION__ << __LINE__ << std::endl;
+
     _sock.send_to(boost::asio::buffer("help"), _server_endpoint);
     session_receive();
 }
 
 void udp_client::session_send()
 {
+    std::clog << __FUNCTION__ << __LINE__ << std::endl;
+
     std::getline(std::cin, _write_message);
-    _sock.async_send_to(
-        boost::asio::buffer(_write_message),
-        _server_endpoint,
-        boost::bind(&udp_client::handle_send,
-                    this,
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred));
+    _sock.async_send_to(boost::asio::buffer(_write_message), _server_endpoint,
+                        boost::bind(&udp_client::handle_send, this, boost::asio::placeholders::error,
+                                    boost::asio::placeholders::bytes_transferred));
 }
 
-void udp_client::handle_send(const boost::system::error_code &ec, std::size_t len)
+void udp_client::handle_send(const boost::system::error_code& ec, std::size_t len)
 {
+    std::clog << __FUNCTION__ << __LINE__ << std::endl;
     //if(p2p_connect)
     //    return;
     //else
@@ -68,17 +71,18 @@ void udp_client::handle_send(const boost::system::error_code &ec, std::size_t le
 
 void udp_client::session_receive()
 {
-    _sock.async_receive_from(
-        boost::asio::buffer(_recv_buffer),
-        _server_endpoint,
-        boost::bind(&udp_client::handle_recevie,
-                    this,
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred));
+    std::clog << __FUNCTION__ << __LINE__ << std::endl;
+
+    _sock.async_receive_from(boost::asio::buffer(_recv_buffer), _server_endpoint,
+                             boost::bind(&udp_client::handle_recevie, this,
+                                         boost::asio::placeholders::error,
+                                         boost::asio::placeholders::bytes_transferred));
 }
 
-void udp_client::handle_recevie(const boost::system::error_code &ec, std::size_t len)
+void udp_client::handle_recevie(const boost::system::error_code& ec, std::size_t len)
 {
+    std::clog << __FUNCTION__ << __LINE__ << std::endl;
+
     std::string receive_message(_recv_buffer.data(), len);
     if (strncmp(receive_message.c_str(), "PUNCH_SUCCESS", 13) == 0)
     {
@@ -88,8 +92,8 @@ void udp_client::handle_recevie(const boost::system::error_code &ec, std::size_t
         p2p_connect = 1;
         char str_endpoint[127];
         strcpy(str_endpoint, receive_message.c_str() + 14);
-        char *peer_ip = strtok(str_endpoint, ":");
-        char *peer_port = strtok(NULL, ":");
+        char* peer_ip = strtok(str_endpoint, ":");
+        char* peer_port = strtok(NULL, ":");
         udp::endpoint request_peer(boost::asio::ip::address::from_string(peer_ip),
                                    std::atoi(peer_port));
         _sock.send_to(boost::asio::buffer("Sender peer connection complete."), request_peer);
@@ -104,9 +108,10 @@ void udp_client::handle_recevie(const boost::system::error_code &ec, std::size_t
         p2p_connect = 1;
         char str_endpoint[127];
         strcpy(str_endpoint, receive_message.c_str() + 14);
-        char *peer_ip = strtok(str_endpoint, ":");
-        char *peer_port = strtok(NULL, ":");
-        udp::endpoint request_peer(boost::asio::ip::address::from_string(peer_ip),std::atoi(peer_port));
+        char* peer_ip = strtok(str_endpoint, ":");
+        char* peer_port = strtok(NULL, ":");
+        udp::endpoint request_peer(boost::asio::ip::address::from_string(peer_ip),
+                                   std::atoi(peer_port));
 
         std::cin.clear(std::cin.rdstate() & std::cin.eofbit);
         _sock.send_to(boost::asio::buffer("Receiver peer connection complete."), request_peer);
@@ -124,28 +129,31 @@ void udp_client::handle_recevie(const boost::system::error_code &ec, std::size_t
         session_send();
 }
 
-void udp_client::p2p_receive(udp::socket &sock, udp::endpoint &peer_endpoint)
+void udp_client::p2p_receive(udp::socket& sock, udp::endpoint& peer_endpoint)
 {
+    std::clog << __FUNCTION__ << __LINE__ << std::endl;
+
     while (true)
     {
         boost::system::error_code error;
         //blocked until successfully received
-        size_t len = sock.receive_from(boost::asio::buffer(_recv_buffer),
-                                       peer_endpoint, 0, error);
+        size_t len = sock.receive_from(boost::asio::buffer(_recv_buffer), peer_endpoint, 0, error);
         std::string receive_message(_recv_buffer.data(), len);
         std::cout << receive_message << std::endl;
     }
 }
 
-void udp_client::p2p_send(udp::socket *sock, udp::endpoint *peer_endpoint)
+void udp_client::p2p_send(udp::socket* sock, udp::endpoint* peer_endpoint)
 {
+    std::clog << __FUNCTION__ << __LINE__ << std::endl;
+
     while (std::getline(std::cin, _write_message))
     {
-        sock->send_to(boost::asio::buffer(_write_message), *peer_endpoint);//blocked
+        sock->send_to(boost::asio::buffer(_write_message), *peer_endpoint); //blocked
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     if (argc != 3)
     {
