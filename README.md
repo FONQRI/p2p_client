@@ -1,6 +1,6 @@
 # p2p_client
 
-This is a cliet that make p2p connection with the help of [p2p_server](https://gitlab.com/complete_graph/p2p_server) that is a simple STUN server.
+This is a cliet that make p2p connection with the help of [p2p_server](https://github.com/FONQRI/p2p_server) that is a simple STUN server.
 source code from https://www.tuicool.com/articles/YNBVrei with a little edit.
 
 ### Prerequisites
